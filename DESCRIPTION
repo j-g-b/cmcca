@@ -1,0 +1,33 @@
+Package: cmcca
+Title: Cyclically Monotone Canonical Correlation Analysis
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Jordan",
+           family = "Bryan",
+           role = c("aut", "cre"),
+           email = "jordan.bryan@duke.edu")
+Description: What the package does (one paragraph).
+License: `use_mit_license()`, `use_gpl3_license()` or friends to
+    pick a license
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    methods,
+    Rcpp (>= 0.12.0),
+    RcppArmadillo,
+    RcppDist,
+    RcppEigen,
+    RcppParallel (>= 5.0.1),
+LinkingTo: 
+    BH (>= 1.66.0),
+    Rcpp (>= 0.12.0),
+    RcppArmadillo,
+    RcppDist,
+    RcppEigen (>= 0.3.3.3.0),
+    RcppParallel (>= 5.0.1)
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
+Biarch: true
+Depends: 
+    R (>= 3.4.0)
+SystemRequirements: GNU make
