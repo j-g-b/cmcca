@@ -118,6 +118,7 @@ df <- data.frame(n = rep(N, 4),
   dplyr::mutate(Method = factor(Method, levels = c('CCA', 'GCCCA', 'CMCCA plugin', 'CMCCA MCMC')))
 
 #
+saveRDS(df, "figures_tables/mse_lin.rds")
 pdf("figures_tables/mse_lin.pdf", family="Times", height = 5, width = 7)
 par(mar = c(4, 5, 4, 2))
 boxplot(value ~ n + Method, data = df, names = c("50", "100", "250", "500", "1000",
