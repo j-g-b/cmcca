@@ -73,11 +73,13 @@ double AcceptanceRatioMVNorm(Eigen::VectorXd & x_new, Eigen::MatrixXd & X, Eigen
 //
 // [[Rcpp::export]]
 Rcpp::List eigen_sample_X(Rcpp::NumericMatrix & YY, Rcpp::NumericMatrix & XX, Rcpp::NumericVector & WW,
-                                   Rcpp::NumericMatrix & SS, Rcpp::NumericMatrix & AA, Rcpp::NumericMatrix & BB)
+                                   Rcpp::NumericMatrix & SS, Rcpp::NumericMatrix & AA, Rcpp::NumericMatrix & BB,
+                                   Rcpp::IntegerVector & Sub)
 {
   //
   int N = YY.nrow();
   int P = YY.ncol();
+  int M = Sub.length();
 
   //
   // Define array containers for objects passed from R
@@ -105,10 +107,13 @@ Rcpp::List eigen_sample_X(Rcpp::NumericMatrix & YY, Rcpp::NumericMatrix & XX, Rc
   double obj_new = -1;
   int count;
   bool is_cm;
+  int i;
 
   //
   // Metropolis-Hastings
-  for(int i = 0; i < N; i = i + 1){
+  for(int m = 0; m < M; m = m + 1){
+    //
+    i = Sub[m];
     //
     // Specify covariance matrix
     for(int j = 0; j < N; j = j + 1){

@@ -1,7 +1,7 @@
 #' Function for semiparametric CCA model
 #'
 #' @export cmcca_mcmc
-cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d = NULL){
+cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d = NULL, maxn = 100){
   #
   require(magrittr)
   # Specify problem dimensions
@@ -11,9 +11,12 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
   }
   p1 <- ncol(Y1)
   p2 <- ncol(Y2)
+  ss <- min(maxn, n)
   # Initialize parameter values
   X1 <- rnorm(n*p1) %>% matrix(nrow=n)
+  X1 <- sweep(X1, 2, colMeans(X1))
   X2 <- rnorm(n*p2) %>% matrix(nrow=n)
+  X2 <- sweep(X2, 2, colMeans(X2))
   assign1 <- transport::transport(transport::pp(X1),
                                   transport::pp(Y1),
                                   p = 2)
@@ -22,20 +25,16 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
                                   p = 2)
   X1 <- X1[order(assign1[, 2]), ]
   X2 <- X2[order(assign2[, 2]), ]
-  # Get dual variables if dual sampling
-  S1 <- cmcca::get_assignment_dual_variables(X1, Y1)[["slack_matrix"]]
-  S2 <- cmcca::get_assignment_dual_variables(X2, Y2)[["slack_matrix"]]
   # Initialize parameter values
   aX <- (t(cbind(X1, X2))%*%cbind(X1, X2) / n) %>%
-    #apply(1, function(x){x - mean(x)}) %>%
-    #t() %>%
-    #cmcca::compute_relation_matrix(d=c(p1, p2)) %>%
     cmcca::extract_association_matrices(d=c(p1, p2)) %>%
     magrittr::extract2(1)
   Q1 <- svd(aX)[["u"]][, 1:d]
   Q2 <- svd(aX)[["v"]][, 1:d]
   W1 <- Q1
   W2 <- Q2
+  mY <- colMeans(cbind(Y1, Y2))
+  cY <- sweep(cbind(Y1, Y2), 2, mY)
   #
   Lambda <- svd(aX)[["d"]][1:d] %>%
     pmin(rep(0.99, d)) %>%
@@ -64,9 +63,6 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
     #
     Lambda <- cmcca::sample_Lambda_cubic(Lambda, X1, X2, Q1, Q2)
     # Sample new parameter values
-    #X1_res <- cmcca::fast_dual_sample_X(X1, X2, Q1, Q2, Lambda, Y1, S1)
-    #X1 <- X1_res[["X"]]
-    #S1 <- X1_res[["S"]]
     #assign1 <- transport::transport(transport::pp(X1),
     #                                transport::pp(Y1),
     #                                p = 2)
@@ -74,7 +70,8 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
     #  View(assign1)
     #  stop()
     #}
-    X1 <- cmcca::sample_X(X1, X2, Q1, Q2, Lambda, Y1)
+    Sub <- sample(1:n, ss) - 1
+    X1 <- cmcca::sample_X(X1, X2, Q1, Q2, Lambda, Y1, Sub)
     if(plot){
       #png(filename = paste0("cmmc_ani/p", s, ".png"), width = 8, height = 4, units = 'in', res = 300)
       #par(mfrow = c(1, 2))
@@ -95,10 +92,8 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
       }
     }
     #
-    #X2_res <- cmcca::fast_dual_sample_X(X2, X1, Q2, Q1, Lambda, Y2, S2)
-    #X2 <- X2_res[["X"]]
-    #S2 <- X2_res[["S"]]
-    X2 <- cmcca::sample_X(X2, X1, Q2, Q1, Lambda, Y2)
+    Sub <- sample(1:n, ss) - 1
+    X2 <- cmcca::sample_X(X2, X1, Q2, Q1, Lambda, Y2, Sub)
     #
     # Generalized Gibbs step
     IL <- 1/((1/Lambda^2)-1)
@@ -113,8 +108,6 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
     g <- sqrt(u)
     X1 <- g*X1
     X2 <- g*X2
-    #S1 <- g*S1
-    #S2 <- g*S2
     #
     # Generalized Gibbs step
     Cmat <- rbind(cbind(diag(rep(1, p1)), Q1%*%diag(Lambda)%*%t(Q2)),
@@ -123,6 +116,18 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
     g <- Mean + t(chol(Cmat/n))%*%rnorm(p1+p2)
     X1 <- sweep(X1, 2, g[1:p1], "-")
     X2 <- sweep(X2, 2, g[(p1+1):(p1+p2)], "-")
+    #
+    # Generalized Gibbs step
+    Cmatinv <- solve(Cmat)
+    iv <- sum(diag(Cmatinv%*%crossprod(cY)))
+    mn <- sum(diag(Cmatinv%*%crossprod(cbind(X1, X2), cY)))
+    print(mn/iv)
+    if(mn < 0){
+      g <- truncdist::rtrunc(1, "norm", b = 0, mean = mn/iv, sd = 1/sqrt(iv))
+      X1 <- X1 - g*cY[, 1:p1]
+      X2 <- X2 - g*cY[, (p1+1):(p1+p2)]
+      print("G Gibbs")
+    }
     #
     Q1 <- cmcca::sample_rbmf_slice_Q(X1, X2, Q1, Q2, Lambda, W1)
     W1 <- Q1[["W"]]

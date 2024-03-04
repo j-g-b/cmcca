@@ -13,8 +13,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // eigen_sample_X
-Rcpp::List eigen_sample_X(Rcpp::NumericMatrix& YY, Rcpp::NumericMatrix& XX, Rcpp::NumericVector& WW, Rcpp::NumericMatrix& SS, Rcpp::NumericMatrix& AA, Rcpp::NumericMatrix& BB);
-RcppExport SEXP _cmcca_eigen_sample_X(SEXP YYSEXP, SEXP XXSEXP, SEXP WWSEXP, SEXP SSSEXP, SEXP AASEXP, SEXP BBSEXP) {
+Rcpp::List eigen_sample_X(Rcpp::NumericMatrix& YY, Rcpp::NumericMatrix& XX, Rcpp::NumericVector& WW, Rcpp::NumericMatrix& SS, Rcpp::NumericMatrix& AA, Rcpp::NumericMatrix& BB, Rcpp::IntegerVector& Sub);
+RcppExport SEXP _cmcca_eigen_sample_X(SEXP YYSEXP, SEXP XXSEXP, SEXP WWSEXP, SEXP SSSEXP, SEXP AASEXP, SEXP BBSEXP, SEXP SubSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -24,13 +24,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type SS(SSSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type AA(AASEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type BB(BBSEXP);
-    rcpp_result_gen = Rcpp::wrap(eigen_sample_X(YY, XX, WW, SS, AA, BB));
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type Sub(SubSEXP);
+    rcpp_result_gen = Rcpp::wrap(eigen_sample_X(YY, XX, WW, SS, AA, BB, Sub));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_cmcca_eigen_sample_X", (DL_FUNC) &_cmcca_eigen_sample_X, 6},
+    {"_cmcca_eigen_sample_X", (DL_FUNC) &_cmcca_eigen_sample_X, 7},
     {NULL, NULL, 0}
 };
 

@@ -77,11 +77,10 @@ cov_sample_X <- function(X1, X2, Q1, Q2, Lambda, Y){
 #'
 #'
 #' @export sample_X
-sample_X <- function(X1, X2, Q1, Q2, Lambda, Y){
+sample_X <- function(X1, X2, Q1, Q2, Lambda, Y, Sub){
   #
   n <- nrow(X1)
   p <- ncol(X1)
-  ellipse_prob <- 0.9
   #
   A <- Q1%*%diag(1/((1/Lambda^2)-1))%*%t(Q1)
   B <- t(Q1%*%diag(1/(Lambda - (1/Lambda)))%*%t(X2%*%Q2))
@@ -89,7 +88,7 @@ sample_X <- function(X1, X2, Q1, Q2, Lambda, Y){
   S <- sweep(-S, 1, diag(S),"+")
   W <- rep(0, n)
   #
-  result <- cmcca:::eigen_sample_X(Y, X1, W, S, A, B)
+  result <- cmcca:::eigen_sample_X(Y, X1, W, S, A, B, Sub)
   return(result$X)
 }
 
