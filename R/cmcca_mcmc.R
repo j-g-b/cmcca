@@ -59,11 +59,7 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
   start_time <- Sys.time()
   for(s in 1:iter){
     if(s%%10 == 0){
-      plot(X)
-    }
-    if(s%%100 == 0){
       print(paste0(round(100*s / iter, 2), "% done..."))
-      print(Lambda)
     }
     #
     Lambda <- cmcca::sample_Lambda_cubic(Lambda, X1, X2, Q1, Q2)

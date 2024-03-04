@@ -5,13 +5,14 @@ library(magrittr)
 library(tidyverse)
 #
 N <- c(50, 100, 250, 500, 1000)
-n_sim <- 200
+n_sim <- 5
 p1 <- 2
 p2 <- 2
 d <- min(p1, p2)
 #
 COP_MSE <- matrix(NA, length(N), n_sim)
 CCA_MSE <- matrix(NA, length(N), n_sim)
+CMCCA_MSE <- matrix(NA, length(N), n_sim)
 PLUG_MSE <- matrix(NA, length(N), n_sim)
 #
 Sig <- matrix(c(1, 0.25, 0.25, 1), nrow = 2)
@@ -100,6 +101,13 @@ for(i in 1:length(N)){
       magrittr::extract2('(1, 2)') %>%
       c()
     PLUG_MSE[i, sim] <- sum((A_CCA - c(A))^2)
+    #
+    cmcca_res <- cmcca::cmcca_mcmc(Y1, Y2, iter = 500)
+    A_CCA <- sapply(1:ncol(cmcca_res$Lambda), function(m){
+      c(cmcca_res$Q1[,,m]%*%diag(cmcca_res$Lambda[, m])%*%t(cmcca_res$Q2[,,m]))
+    }) %>%
+      rowMeans()
+    CMCCA_MSE[i, sim] <- sum((A_CCA - c(A))^2)
   }
 }
 #

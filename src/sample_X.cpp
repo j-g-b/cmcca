@@ -42,10 +42,10 @@ Eigen::VectorXd RcppToEigenVec(Rcpp::NumericVector & RVec){
 }
 
 //
-double AcceptanceRatioNorm(double x_new, Eigen::MatrixXd & X, Eigen::MatrixXd & A, Eigen::MatrixXd & B, double i, double k){
+double AcceptanceRatioNorm(double x_new, Eigen::MatrixXd & X, Eigen::MatrixXd & A, Eigen::MatrixXd & B, int i, int k){
   double log_r;
   double r;
-  log_r = -(0.5)*((1 + A(k, k))*(pow(x_new, 2) - pow(X(i, k), 2)) + 2*(x_new - X(i, k))*(A.row(k).dot(X.row(i)) - A(k, k)*X(i, k) + B(i, k))) + R::dnorm4(X(i, k), 0, 1, true) - R::dnorm4(x_new, 0, 1, true);
+  log_r = (-0.5)*((1 + A(k, k))*(std::pow(x_new, 2) - std::pow(X(i, k), 2)) + 2*(x_new - X(i, k))*(A.row(k).dot(X.row(i)) - A(k, k)*X(i, k) + B(i, k))) + R::dnorm(X(i, k), 0, 1, TRUE) - R::dnorm(x_new, 0, 1, TRUE);
   r = std::exp(log_r);
   return(r);
 }
@@ -62,10 +62,10 @@ double ProposeEpsHitRun(Eigen::MatrixXd & X, Eigen::MatrixXd & A, Eigen::MatrixX
 }
 
 //
-double AcceptanceRatioMVNorm(Eigen::VectorXd & x_new, Eigen::MatrixXd & X, Eigen::MatrixXd & A, Eigen::MatrixXd & B, double i, double eps){
+double AcceptanceRatioMVNorm(Eigen::VectorXd & x_new, Eigen::MatrixXd & X, Eigen::MatrixXd & A, Eigen::MatrixXd & B, int i, double eps){
   double log_r;
   double r;
-  log_r = -(0.5)*(x_new.dot(x_new) - X.row(i).transpose().dot(X.row(i).transpose()) + x_new.dot(A*x_new) - X.row(i).transpose().dot(A*X.row(i).transpose()) + 2*(x_new - X.row(i).transpose()).dot(B.row(i).transpose())) - R::dnorm4(eps, 0, 1, true) + R::dnorm4(0, 0, 1, true);
+  log_r = (-0.5)*(x_new.dot(x_new) - X.row(i).transpose().dot(X.row(i).transpose()) + x_new.dot(A*x_new) - X.row(i).transpose().dot(A*X.row(i).transpose()) + 2*(x_new - X.row(i).transpose()).dot(B.row(i).transpose())) - R::dnorm(eps, 0, 1, TRUE) + R::dnorm(0, 0, 1, TRUE);
   r = std::exp(log_r);
   return(r);
 }
