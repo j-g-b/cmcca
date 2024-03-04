@@ -117,18 +117,6 @@ cmcca_mcmc <- function(Y1, Y2, iter = 1000, burn_in = 0, thin = 1, plot = F, d =
     X1 <- sweep(X1, 2, g[1:p1], "-")
     X2 <- sweep(X2, 2, g[(p1+1):(p1+p2)], "-")
     #
-    # Generalized Gibbs step
-    Cmatinv <- solve(Cmat)
-    iv <- sum(diag(Cmatinv%*%crossprod(cY)))
-    mn <- sum(diag(Cmatinv%*%crossprod(cbind(X1, X2), cY)))
-    print(mn/iv)
-    if(mn < 0){
-      g <- truncdist::rtrunc(1, "norm", b = 0, mean = mn/iv, sd = 1/sqrt(iv))
-      X1 <- X1 - g*cY[, 1:p1]
-      X2 <- X2 - g*cY[, (p1+1):(p1+p2)]
-      print("G Gibbs")
-    }
-    #
     Q1 <- cmcca::sample_rbmf_slice_Q(X1, X2, Q1, Q2, Lambda, W1)
     W1 <- Q1[["W"]]
     Q1 <- Q1[["Q"]]

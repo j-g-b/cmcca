@@ -102,9 +102,7 @@ for(i in 1:length(N)){
       c()
     PLUG_MSE[i, sim] <- sum((A_CCA - c(A))^2)
     #
-    print(Sys.time())
     cmcca_res <- cmcca_mcmc(Y1, Y2, iter = 500, maxn = 10)
-    print(Sys.time())
     A_CCA <- sapply(1:ncol(cmcca_res$Lambda), function(m){
       c(cmcca_res$Q1[,,m]%*%diag(cmcca_res$Lambda[, m])%*%t(cmcca_res$Q2[,,m]))
     }) %>%
