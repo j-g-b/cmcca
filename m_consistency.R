@@ -5,7 +5,7 @@ library(magrittr)
 library(tidyverse)
 #
 N <- c(50, 100, 250, 500, 1000)
-n_sim <- 200
+n_sim <- 100
 p1 <- 2
 p2 <- 2
 d <- min(p1, p2)
@@ -13,6 +13,7 @@ d <- min(p1, p2)
 COP_MSE <- matrix(NA, length(N), n_sim)
 CCA_MSE <- matrix(NA, length(N), n_sim)
 PLUG_MSE <- matrix(NA, length(N), n_sim)
+CMCCA_MSE <- matrix(NA, length(N), n_sim)
 #
 m_trans <- function(x){
   pnorm(x) %>% qweibull(1, 1)
@@ -98,25 +99,35 @@ for(i in 1:length(N)){
       magrittr::extract2('(1, 2)') %>%
       c()
     PLUG_MSE[i, sim] <- sum((A_CCA - c(A))^2)
+    #
+    cmcca_res <- cmcca_mcmc(Y1, Y2, iter = 500, maxn = 10)
+    A_CCA <- sapply(1:ncol(cmcca_res$Lambda), function(m){
+      c(cmcca_res$Q1[,,m]%*%diag(cmcca_res$Lambda[, m])%*%t(cmcca_res$Q2[,,m]))
+    }) %>%
+      rowMeans()
+    CMCCA_MSE[i, sim] <- sum((A_CCA - c(A))^2)
   }
 }
 #
-df <- data.frame(n = rep(N, 3),
-                 Method = rep(c("CCA", "GCCCA", "CMCCA"), each = length(N)),
-                 rbind(CCA_MSE, COP_MSE, PLUG_MSE)) %>%
+df <- data.frame(n = rep(N, 4),
+                 Method = rep(c("CCA", "GCCCA", "CMCCA plugin", "CMCCA MCMC"), each = length(N)),
+                 rbind(CCA_MSE, COP_MSE, PLUG_MSE, CMCCA_MSE)) %>%
   reshape2::melt(id.vars = c("n", "Method")) %>%
-  dplyr::mutate(Method = factor(Method, levels = c('CCA', 'GCCCA', 'CMCCA')))
+  dplyr::mutate(Method = factor(Method, levels = c('CCA', 'GCCCA', 'CMCCA plugin', 'CMCCA MCMC')))
 
 #
+saveRDS(df, "figures_tables/mse_m.rds")
 pdf("figures_tables/mse_m.pdf", family="Times", height = 5, width = 7)
 par(mar = c(4, 5, 4, 2))
 boxplot(value ~ n + Method, data = df, names = c("50", "100", "250", "500", "1000",
                                                  "50", "100", "250", "500", "1000",
+                                                 "50", "100", "250", "500", "1000",
                                                  "50", "100", "250", "500", "1000"),
-        at = c(1:5, 7:11, 13:17), xlab = "n", ylab = expression(L[W]),
+        at = c(1:5, 7:11, 13:17, 19:23), xlab = "n", ylab = expression(L[W]),
         col = c("#1b9e77", "#1b9e77", "#1b9e77", "#1b9e77", "#1b9e77",
                 "#d95f02", "#d95f02", "#d95f02", "#d95f02", "#d95f02",
-                "#7570b3", "#7570b3", "#7570b3", "#7570b3", "#7570b3"), outline = F,
-        ylim = c(0, 0.21), cex.lab = 1.2)
-legend("topleft", fill = c("#1b9e77", "#d95f02", "#7570b3"), legend = c("CCA","GCCCA","CMCCA"), horiz = T)
+                "#7570b3", "#7570b3", "#7570b3", "#7570b3", "#7570b3",
+                "#e6ab02", "#e6ab02", "#e6ab02", "#e6ab02", "#e6ab02"), outline = F,
+        ylim = c(0, 0.18), cex.lab = 1.2)
+legend("topleft", fill = c("#1b9e77", "#d95f02", "#7570b3", "#e6ab02"), legend = c("CCA","GCCCA","CMCCA plugin", 'CMCCA MCMC'), horiz = T)
 dev.off()

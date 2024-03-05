@@ -12,8 +12,8 @@ d <- min(p1, p2)
 #
 COP_MSE <- matrix(NA, length(N), n_sim)
 CCA_MSE <- matrix(NA, length(N), n_sim)
-CMCCA_MSE <- matrix(NA, length(N), n_sim)
 PLUG_MSE <- matrix(NA, length(N), n_sim)
+CMCCA_MSE <- matrix(NA, length(N), n_sim)
 #
 Sig <- matrix(c(1, 0.25, 0.25, 1), nrow = 2)
 #
